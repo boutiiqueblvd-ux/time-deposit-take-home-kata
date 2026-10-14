@@ -1,30 +1,41 @@
 package org.ikigaidigital;
 
+import org.ikigaidigital.interest.BasicInterestPolicy;
+import org.ikigaidigital.interest.InterestPolicy;
+import org.ikigaidigital.interest.PremiumInterestPolicy;
+import org.ikigaidigital.interest.StudentInterestPolicy;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class TimeDepositCalculator {
+    private final Map<String, InterestPolicy> policiesByPlanType;
+
+    public TimeDepositCalculator() {
+        this(List.of(new BasicInterestPolicy(), new StudentInterestPolicy(), new PremiumInterestPolicy()));
+    }
+
+    public TimeDepositCalculator(List<InterestPolicy> policies) {
+        this.policiesByPlanType = policies.stream()
+                .collect(Collectors.toMap(InterestPolicy::planType, Function.identity()));
+    }
+
     public void updateBalance(List<TimeDeposit> xs) {
-        for (int i = 0; i < xs.size(); i++) {
-            double interest = 0;
+        for (TimeDeposit deposit : xs) {
+            double interest = monthlyInterest(deposit);
 
-            if (xs.get(i).getDays() > 30) {
-                if (xs.get(i).getPlanType().equals("student")) {
-                    if (xs.get(i).getDays() < 366) {
-                        interest += xs.get(i).getBalance() * 0.03 / 12;
-                    }
-                } else if (xs.get(i).getPlanType().equals("premium")) {
-                    if (xs.get(i).getDays() > 45) {
-                        interest += xs.get(i).getBalance() * 0.05 / 12;
-                    }
-                } else if (xs.get(i).getPlanType().equals("basic")) {
-                    interest += xs.get(i).getBalance() * 0.01 / 12;
-                }
-            }
-
-            double a2d = xs.get(i).getBalance() + (new BigDecimal(interest).setScale(2, RoundingMode.HALF_UP)).doubleValue();
-            xs.get(i).setBalance(a2d);
+            double a2d = deposit.getBalance() + (new BigDecimal(interest).setScale(2, RoundingMode.HALF_UP)).doubleValue();
+            deposit.setBalance(a2d);
         }
+    }
+
+    // Plan types without a policy earn no interest, as in the original implementation.
+    private double monthlyInterest(TimeDeposit deposit) {
+        InterestPolicy policy = policiesByPlanType.get(deposit.getPlanType());
+        return policy == null ? 0 : policy.calculateMonthlyInterest(deposit);
     }
 }
