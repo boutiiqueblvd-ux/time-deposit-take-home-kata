@@ -2,6 +2,8 @@ package org.ikigaidigital.adapter.web;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import org.ikigaidigital.TestcontainersConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -84,6 +87,18 @@ class TimeDepositApiIntegrationTest {
         assertThat(fieldNames(paths.get("/time-deposits"))).containsExactly("get");
         assertThat(fieldNames(paths.at("/~1time-deposits/get/responses/200/content"))).containsExactly("application/json");
         assertThat(fieldNames(paths.get("/time-deposits/update-balances"))).containsExactly("post");
+    }
+
+    @Test
+    void the_served_api_matches_the_committed_openapi_contract() throws Exception {
+        ObjectNode served = (ObjectNode) getJson("/v3/api-docs");
+        ObjectNode committed = (ObjectNode) new YAMLMapper().readTree(Path.of("openapi.yaml").toFile());
+        served.remove("servers");
+        committed.remove("servers");
+
+        assertThat(served)
+                .as("openapi.yaml is out of date; update it from /v3/api-docs.yaml")
+                .isEqualTo(committed);
     }
 
     @Test

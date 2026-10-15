@@ -1,0 +1,66 @@
+# OpenAPI contract of the XA Bank Time Deposit API.
+# OpenApiContractTest fails if the API served by the application drifts from this file
+# (the environment-specific "servers" section is not compared).
+openapi: 3.1.0
+info:
+  title: XA Bank Time Deposit API
+  version: "1.0"
+servers:
+  - url: http://localhost:8080
+    description: Local (docker compose up)
+paths:
+  /time-deposits:
+    get:
+      tags:
+        - Time deposits
+      summary: List all time deposits with their withdrawals
+      operationId: getAll
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TimeDepositResponse"
+  /time-deposits/update-balances:
+    post:
+      tags:
+        - Time deposits
+      summary: Update the balances of all time deposits
+      description: "Applies one monthly interest cycle to every time deposit. Each call adds another month of interest, so the operation is not idempotent."
+      operationId: updateBalances
+      responses:
+        "204":
+          description: Balances updated
+components:
+  schemas:
+    TimeDepositResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        planType:
+          type: string
+        balance:
+          type: number
+        days:
+          type: integer
+          format: int32
+        withdrawals:
+          type: array
+          items:
+            $ref: "#/components/schemas/WithdrawalResponse"
+    WithdrawalResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        amount:
+          type: number
+        date:
+          type: string
+          format: date
