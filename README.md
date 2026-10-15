@@ -88,7 +88,8 @@ cd java
 mvn test
 ```
 
-Docker must be running: persistence and API tests start a real PostgreSQL with Testcontainers.
+Persistence and API tests start a real PostgreSQL with Testcontainers, so Docker must be running. Without Docker
+those test classes are reported as **skipped** (not passed) and only the unit tests run — check the surefire summary.
 
 ## API Documentation
 
