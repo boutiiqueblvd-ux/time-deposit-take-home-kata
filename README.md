@@ -1,5 +1,7 @@
 # XA Bank Time Deposit API
 
+[![CI](https://github.com/boutiiqueblvd-ux/time-deposit-take-home-kata/actions/workflows/ci.yml/badge.svg)](https://github.com/boutiiqueblvd-ux/time-deposit-take-home-kata/actions/workflows/ci.yml)
+
 Solution to the [Time Deposit Refactoring Kata](ASSIGNMENT.md). The implementation lives in [`java/`](java/); the other language folders are the untouched starting points of the kata.
 
 ## Project Overview
@@ -103,12 +105,16 @@ mvn test
 
 Persistence and API tests use Testcontainers to start PostgreSQL, so Docker must be running for those tests. When Docker is unavailable, those test classes are reported as **skipped**, not passed; only the tests that can run without Docker execute. Check the Maven Surefire summary to distinguish passed, failed, and skipped tests.
 
+The [CI workflow](.github/workflows/ci.yml) runs `mvn test` on every push and pull request with Docker available, and fails the build if any test is skipped.
+
 ## API Documentation
+
+The OpenAPI contract is committed as [`java/openapi.yaml`](java/openapi.yaml). It can be imported into any OpenAPI tool without running the application. A test fails if the API served by the application drifts from this file.
 
 When the application is running:
 
 - Swagger UI: <http://localhost:8080/swagger-ui.html>
-- OpenAPI contract: <http://localhost:8080/v3/api-docs>
+- Generated contract: <http://localhost:8080/v3/api-docs> (JSON) or <http://localhost:8080/v3/api-docs.yaml>
 
 To try the endpoints in Swagger UI, open an operation, select **Try it out**, and then select **Execute**. Run `GET /time-deposits`, then `POST /time-deposits/update-balances`, and then `GET /time-deposits` again to inspect the updated balances.
 
@@ -182,7 +188,7 @@ The endpoint count is checked against the generated OpenAPI contract, and unmapp
 
 ### Concurrency
 
-The monthly update is designed to lock the deposit rows using `SELECT ... FOR UPDATE` within a transaction. This is intended to prevent concurrent updates from overwriting each other's work. The actual guarantee depends on the transaction boundaries and database behavior; see the persistence implementation and tests when reviewing this claim.
+The monthly update reads the deposits with `SELECT ... FOR UPDATE` inside the transaction of `TimeDepositService.updateAllBalances()`, so the rows stay locked until the new balances are committed. A second, concurrent run waits for the first one and then applies its own month of interest, instead of both runs reading the same balances and one overwriting the other. This relies on PostgreSQL row locking; it is not covered by an automated concurrency test.
 
 ## Business Assumptions
 

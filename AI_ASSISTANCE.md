@@ -8,7 +8,7 @@ This document describes how AI tools were used during the implementation of the 
 |---|---|
 | Claude Code (Anthropic) | Used in VS Code with agent capabilities for repository inspection, file editing, shell commands, Maven, Git, Docker, and test execution. |
 | `CLAUDE.md` | Project-level instructions loaded by Claude Code. It records hard constraints, working conventions, and relevant commands, and is committed so the workflow can be reproduced. |
-| Session prompt | A structured prompt defined the agent's role as a senior backend engineer and reviewer and specified the phased workflow below. |
+| Session prompt | A structured prompt defined the agent's role as a senior backend engineer and reviewer and specified the phased workflow below. It is committed verbatim in [`docs/ai/session-prompt.md`](docs/ai/session-prompt.md), together with the points where the session deliberately deviated from it. |
 
 **Model/version:** Claude Opus 5.5 (`claude-opus-5-5`), used through the Claude Code VS Code extension.
 
@@ -16,9 +16,9 @@ This document describes how AI tools were used during the implementation of the 
 
 1. Install Claude Code (CLI or VS Code extension) and open the repository root.
 2. Ensure the committed `CLAUDE.md` is present.
-3. Start a session with a prompt that establishes the role, repository constraints, and workflow described below.
+3. Start a session with the prompt in [`docs/ai/session-prompt.md`](docs/ai/session-prompt.md).
 
-The exact prompt and tool/model settings may need to be supplied separately if a fully identical session is required.
+Model output is not deterministic, so a new session follows the same workflow and constraints but will not produce byte-identical code.
 
 ## Workflow Enforced by the Session Prompt
 
@@ -90,7 +90,7 @@ Docker must be available for the Testcontainers persistence and API tests. When 
 
 **Verification result for this submission (2026-10-15, Windows 11, Docker Desktop with Docker Engine 29.8.2, Testcontainers 1.21.4):**
 
-- `mvn test`: **46 tests run, 0 failures, 0 errors, 0 skipped** — the persistence and API tests ran against PostgreSQL 16 started by Testcontainers.
+- `mvn test`: **47 tests run, 0 failures, 0 errors, 0 skipped** — the persistence and API tests (including the check that the API matches `java/openapi.yaml`) ran against PostgreSQL 16 started by Testcontainers. The same suite runs in the GitHub Actions CI workflow on every push.
 - `docker compose up --build`: image built, PostgreSQL healthy, application started. A manual `GET` → `POST /time-deposits/update-balances` (204) → `GET` sequence on the demo data produced the balances documented in the README, Swagger UI loaded, and `POST /time-deposits` returned 405.
 
 ## Why AI Was Used

@@ -7,6 +7,7 @@ The solution lives in `java/` (Spring Boot 3.5, Java 17, Maven). Other language 
   `TimeDepositCalculatorCharacterizationTest` must stay green; never edit its reference copy of the original algorithm.
 - Do not change the public API of `TimeDeposit`.
 - The API has exactly two endpoints: `GET /time-deposits` and `POST /time-deposits/update-balances`. Do not add others.
+- `java/openapi.yaml` is the committed API contract; when the API changes, update it from `/v3/api-docs.yaml` (a test enforces this).
 - New interest plans are new `InterestPolicy` classes; do not modify existing policies to add a plan.
 
 ## Working style
