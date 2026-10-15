@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: time-deposit-kata
+  datasource:
+    # Defaults match compose.yaml for local development; override via environment variables.
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/time_deposits}
+    username: ${DB_USERNAME:time_deposits}
+    password: ${DB_PASSWORD:time_deposits}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
