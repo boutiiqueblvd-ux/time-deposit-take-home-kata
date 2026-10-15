@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: java
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      # Docker is available on GitHub-hosted runners, so the Testcontainers tests run against PostgreSQL.
+      - name: Run tests
+        run: mvn -B test
+
+      # Testcontainers tests are skipped when Docker is missing; in CI that must fail instead of passing silently.
+      - name: Fail if any test was skipped
+        run: |
+          if grep -l 'skipped="[1-9]' target/surefire-reports/TEST-*.xml; then
+            echo "Some tests were skipped (Docker unavailable?)" >&2
+            exit 1
+          fi
